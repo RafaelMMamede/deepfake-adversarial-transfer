@@ -152,10 +152,54 @@ The adversarial examples generated for the study are hosted on Hugging Face:
 
 https://huggingface.co/datasets/poisonedchicken/deepfake-adversarial-transfer
 
-Use that dataset when you want to reproduce transfer evaluation or analysis
-without regenerating all AA and CW-EOT examples locally. This Git repository
-keeps the attack-generation and evaluation code, while the generated image
-artifacts are maintained in the Hugging Face dataset release.
+Use that dataset when you want to reproduce transfer evaluation without
+regenerating all AA and CW-EOT examples locally. The release stores the clean
+subset in `clean.tar` and the adversarial examples as one TAR per source model
+under:
+
+```text
+aa_th_aware/{imgnet,fr_pretrain}/adv/
+cw_eot_th_aware/{imgnet,fr_pretrain}/adv/
+```
+
+Each source-model TAR preserves the `<model>/<attack-name>/...` hierarchy
+expected below `adv/`. Extracting all archives therefore reconstructs the
+directory structure consumed by the evaluation scripts.
+
+For example:
+
+```bash
+HF_DATA="/path/to/deepfake-adversarial-transfer"
+EVAL_DATA="/path/to/extracted-transfer-data"
+
+mkdir -p "$EVAL_DATA"
+tar -xf "$HF_DATA/clean.tar" -C "$EVAL_DATA"
+
+for ATTACK in aa_th_aware cw_eot_th_aware; do
+  for PRETRAIN in imgnet fr_pretrain; do
+    OUT="$EVAL_DATA/$ATTACK/$PRETRAIN/adv"
+    mkdir -p "$OUT"
+    for ARCHIVE in "$HF_DATA/$ATTACK/$PRETRAIN/adv/"*.tar; do
+      tar -xf "$ARCHIVE" -C "$OUT"
+    done
+  done
+done
+```
+
+After extraction:
+
+```bash
+CLEAN_DIR="$EVAL_DATA/clean"
+AA_IMGNET_ADV="$EVAL_DATA/aa_th_aware/imgnet/adv"
+AA_FR_ADV="$EVAL_DATA/aa_th_aware/fr_pretrain/adv"
+CW_IMGNET_ADV="$EVAL_DATA/cw_eot_th_aware/imgnet/adv"
+CW_FR_ADV="$EVAL_DATA/cw_eot_th_aware/fr_pretrain/adv"
+```
+
+The dataset release also contains `manifest.tsv` and `SHA256SUMS` for archive
+inventory and integrity checking. This Git repository keeps the generation and
+evaluation code; the generated image artifacts remain canonical on Hugging
+Face.
 
 ## Input images
 
