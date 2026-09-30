@@ -62,7 +62,7 @@ export BALANCEDFACE_ROOT=/path/to/BalancedFace/race_per_7000_aligned
 export RFW_ROOT=/path/to/RFW/test_aligned
 ```
 
-The submission-safe configuration pattern is:
+The portable configuration pattern used by this release is:
 
 ```python
 import os
