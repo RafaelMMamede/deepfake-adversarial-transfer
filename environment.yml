@@ -1,0 +1,13 @@
+name: deepfake-transfer
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.7.12
+  - pip=24.0
+  - setuptools=68.0.0
+  - wheel=0.42.0
+  - cmake=4.2.2
+  - dlib=19.24.0
