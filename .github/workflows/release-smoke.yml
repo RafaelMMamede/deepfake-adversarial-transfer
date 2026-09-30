@@ -71,6 +71,45 @@ jobs:
               assert ckpt.startswith("./"), f"Checkpoint path must be repository-relative: {ckpt}"
               assert ckpt.endswith(".pth"), f"Unexpected checkpoint extension: {ckpt}"
 
+          model_names = set(names)
+
+          # Pairwise transfer tables: one ordered row for every source-target
+          # combination under each attack.
+          for transfer_path in (
+              pathlib.Path("analysis/data/transfer_results_aa_th_aware.csv"),
+              pathlib.Path("analysis/data/transfer_results_cw_eot_th_aware.csv"),
+          ):
+              with transfer_path.open(newline="", encoding="utf-8") as f:
+                  transfer_rows = list(csv.DictReader(f))
+              assert len(transfer_rows) == 3600, (
+                  f"{transfer_path}: expected 3600 rows, found {len(transfer_rows)}"
+              )
+              targets = {row["target_model"] for row in transfer_rows}
+              assert targets == model_names, (
+                  f"{transfer_path}: target model set differs from 60-model manifest"
+              )
+
+          # Clean-evaluation table must cover all 60 trained detectors.
+          with pathlib.Path("analysis/data/all_model_results.csv").open(
+              newline="", encoding="utf-8"
+          ) as f:
+              clean_rows = list(csv.DictReader(f))
+          assert len({row["model_name"] for row in clean_rows}) == 60
+
+          # Aggregate oracle tables contain one row per target detector.
+          for oracle_path in pathlib.Path("analysis/data").glob("*_oracle.csv"):
+              with oracle_path.open(newline="", encoding="utf-8") as f:
+                  oracle_rows = list(csv.DictReader(f))
+              assert len(oracle_rows) == 60, (
+                  f"{oracle_path}: expected 60 target rows, found {len(oracle_rows)}"
+              )
+              assert {row["target_model"] for row in oracle_rows} == model_names
+
+          # Release structure expected by the training configurations.
+          assert len(list(pathlib.Path("training/config/detector").glob("*.yaml"))) == 12
+          assert len(list(pathlib.Path("training/config/exp").glob("train_*_ff.json"))) == 5
+          assert len(list(pathlib.Path("preprocessing/dataset_json").glob("*.json"))) == 22
+
           # Fixed attack subset.
           with pathlib.Path("preprocessing/attack_manifest_2000.csv").open(
               newline="", encoding="utf-8"
@@ -80,6 +119,10 @@ jobs:
           assert len({r["sample_id"] for r in rows}) == 2000, "Duplicate sample_id values"
           assert len({r["frame_path"] for r in rows}) == 2000, "Duplicate frame_path values"
           assert {r["family"] for r in rows} == {"FS", "FR", "FE", "EFS"}
+          family_counts = {}
+          for row in rows:
+              family_counts[row["family"]] = family_counts.get(row["family"], 0) + 1
+          assert family_counts == {"FS": 500, "FR": 500, "FE": 500, "EFS": 500}
           assert all(r["frame_path"].startswith("datasets/") for r in rows)
 
           # No checkpoint binaries should be tracked in Git.
