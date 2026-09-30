@@ -49,8 +49,9 @@ weights.
 |-- LICENSE
 |-- CITATION.cff
 |-- THIRD_PARTY_NOTICES.md
-|-- environment.yml
-|-- requirements.txt
+|-- environment.yml             # Exact legacy training/attack environment
+|-- requirements.txt            # Exact legacy Python dependencies
+|-- requirements-analysis.txt   # Modern CPU-only analysis environment
 |-- wheels/
 |   `-- autoattack-0.1-py3-none-any.whl
 |-- preprocessing/   # Dataset indexes, fixed attack subset, validators
@@ -63,12 +64,32 @@ weights.
 Each workflow folder contains its own README with stage-specific inputs,
 configuration, and commands.
 
-## Environment
+## Environments
 
-The released environment reflects the software stack used for the experiments:
-Python 3.7, PyTorch 1.12, and CUDA 11.3.
+Two environments are provided for different reproducibility goals.
 
-From the repository root:
+### Analysis-only environment (recommended for most users)
+
+The included tables, statistical tests, and figures can be reproduced on CPU
+with a modern Python environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-analysis.txt
+```
+
+On Windows PowerShell, activate the environment with
+`.venv\\Scripts\\Activate.ps1`.
+
+This analysis environment is exercised by the repository CI, which executes the
+full analysis notebook from start to finish.
+
+### Exact training and attack environment
+
+`environment.yml` and `requirements.txt` preserve the legacy software stack
+used for detector training and adversarial-example generation: Python 3.7,
+PyTorch 1.12, and CUDA 11.3.
 
 ```bash
 conda env create -f environment.yml
@@ -77,11 +98,16 @@ python -m pip install -r requirements.txt
 python -m pip check
 ```
 
-The bundled AutoAttack wheel is the version used in the experiments and
-contains a compatibility adjustment for Python 3.7.
+Python 3.7 is end-of-life, so this environment should be treated as a
+reproducibility environment rather than a general-purpose or security-maintained
+runtime. Use it in an isolated environment and only when exact training/attack
+compatibility is required.
 
-GPU training and attack generation require a compatible NVIDIA driver. The
-analysis-only workflow can run on CPU.
+The bundled AutoAttack wheel is the version used in the experiments. Its single
+Python 3.7 compatibility patch and SHA-256 checksum are documented in
+`wheels/README.md`.
+
+GPU training and attack generation require a compatible NVIDIA driver.
 
 ## Reproduction paths
 
