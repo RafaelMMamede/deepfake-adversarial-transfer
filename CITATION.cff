@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this code, models, adversarial examples, or derived results, please cite the associated paper."
+title: "What Makes Adversarial Examples Transfer Across Deepfake Detectors?"
+type: software
+authors:
+  - family-names: Mamede
+    given-names: "Rafael M."
+  - family-names: Neto
+    given-names: "Pedro C."
+  - family-names: Sequeira
+    given-names: "Ana F."
+repository-code: "https://github.com/RafaelMMamede/deepfake-adversarial-transfer"
+url: "https://arxiv.org/abs/2609.10002"
+license: "CC-BY-NC-4.0"
+preferred-citation:
+  type: article
+  title: "What Makes Adversarial Examples Transfer Across Deepfake Detectors?"
+  authors:
+    - family-names: Mamede
+      given-names: "Rafael M."
+    - family-names: Neto
+      given-names: "Pedro C."
+    - family-names: Sequeira
+      given-names: "Ana F."
+  year: 2026
+  url: "https://arxiv.org/abs/2609.10002"
