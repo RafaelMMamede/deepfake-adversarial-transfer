@@ -18,6 +18,7 @@ venv/
 # https://huggingface.co/poisonedchicken/deepfake-adversarial-transfer-models
 checkpoints/
 saved_models/
+saved_models_fr_pretrain/
 runs/
 wandb/
 logs/
@@ -28,7 +29,17 @@ slurm-*.out
 slurm.*.out
 slurm.*.err
 /data/
-/datasets/raw/
+
+# Original datasets are not redistributed by this repository.
+/datasets/*
+!/datasets/readme.md
+
+# Generated attack/evaluation artifacts
+/generated_attacks/
+/attack_results/
+/adv/
+/results/
+/preprocessing/json_verify_reports/
 
 # Keep the submitted analysis inputs and outputs in the initial snapshot.
 # Add specific generated output directories here as new experiments are run.
