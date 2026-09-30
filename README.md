@@ -80,7 +80,7 @@ python -m pip install -r requirements-analysis.txt
 ```
 
 On Windows PowerShell, activate the environment with
-`.venv\\Scripts\\Activate.ps1`.
+`.venv\Scripts\Activate.ps1`.
 
 This analysis environment is exercised by the repository CI, which executes the
 full analysis notebook from start to finish.
@@ -151,8 +151,14 @@ Download detector checkpoints from:
 
 https://huggingface.co/poisonedchicken/deepfake-adversarial-transfer-models
 
-The checkpoint paths expected by the evaluation scripts are described in
-`training/README.md` and `attacks/models_to_eval.json`.
+The Hugging Face model release includes a portable `models.json` manifest.
+Pass that file directly to the transfer evaluators with `--models_json`.
+Checkpoint and configuration paths in release manifests are resolved relative
+to the manifest file itself.
+
+The repository-local `attacks/models_to_eval.json` is retained as provenance
+for the original experiment directory structure and contains the original
+timestamped training-run paths.
 
 ### 4. Regenerate attacks
 
@@ -170,8 +176,9 @@ Attack generation commands and parameters are documented in
 Training configurations for the six architectures, two initialization regimes,
 and five training-family settings are provided under `training/config/`.
 
-See `pretraining/README.md` and `training/README.md` for the corresponding
-workflows.
+See `pretraining/README.md`, `training/pretrained/README.md`, and
+`training/README.md` for the corresponding workflows and initialization
+weights.
 
 ## Data paths
 
