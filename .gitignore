@@ -14,7 +14,10 @@ venv/
 .DS_Store
 
 # Training artifacts and machine-local data
+# Released model weights live at:
+# https://huggingface.co/poisonedchicken/deepfake-adversarial-transfer-models
 checkpoints/
+saved_models/
 runs/
 wandb/
 logs/
