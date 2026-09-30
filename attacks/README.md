@@ -22,7 +22,7 @@ fixed decision threshold of 0.5.
 | `attack_cw_eot_th_aware.py` | Generate threshold-aware CW-EOT examples. |
 | `evaluate_success_efficient.py` | Evaluate single-source white-box and black-box transfer. |
 | `evaluate_transfer_oracle.py` | Evaluate single-source results and multi-source oracle transfer. |
-| `models_to_eval.json` | Manifest of the 60 evaluated detectors and their relative config/checkpoint paths. |
+| `models_to_eval.json` | Provenance manifest for the 60 evaluated detectors using the original timestamped experiment paths. |
 | `oracle_rules_self_excluded_no_clip.json` | Self-excluding oracle rule. |
 | `oracle_rules_no_same_train_or_arch_or_clip.json` | Strict oracle rule. |
 
@@ -79,11 +79,49 @@ Released detector checkpoints are available at:
 
 https://huggingface.co/poisonedchicken/deepfake-adversarial-transfer-models
 
-Each model entry in `models_to_eval.json` contains:
+For the public release, use the `models.json` manifest distributed with that
+Hugging Face model repository. Its entries point to the packaged detector
+configuration, `ckpt_best.pth`, and adjacent threshold metadata for each of the
+60 detector variants.
+
+A typical downloaded model release has the following structure:
+
+```text
+deepfake-adversarial-transfer-models/
+├── models.json
+├── source_models.json
+├── SHA256SUMS
+├── imgnet/
+│   └── <model>/
+│       ├── config.yaml
+│       ├── ckpt_best.pth
+│       └── best_threshold.json
+└── fr_pretrain/
+    └── <model>/
+        ├── config.yaml
+        ├── ckpt_best.pth
+        └── best_threshold.json
+```
+
+The evaluators resolve relative `config` and `ckpt` entries against the
+directory containing the supplied manifest, so the model release can live
+outside this code repository:
+
+```bash
+MODEL_RELEASE="/path/to/deepfake-adversarial-transfer-models"
+MODELS_JSON="$MODEL_RELEASE/models.json"
+```
+
+The repository-local `attacks/models_to_eval.json` is kept for provenance. It
+records the original experiment's timestamped `saved_models/` and
+`saved_models_fr_pretrain/` paths and is only directly usable when that
+original directory layout is reproduced.
+
+Each model manifest entry contains:
 
 - `name`: canonical detector identifier.
-- `config`: relative detector configuration path.
-- `ckpt`: relative checkpoint path.
+- `config`: detector configuration path.
+- `ckpt`: detector checkpoint path.
 
 Each checkpoint must be accompanied by its selected detector threshold. The
 attack and evaluation scripts search the checkpoint directory and its parents
@@ -250,6 +288,8 @@ Example for AutoAttack:
 
 ```bash
 PYTHON="${PYTHON:-python}"
+MODEL_RELEASE="/path/to/deepfake-adversarial-transfer-models"
+MODELS_JSON="$MODEL_RELEASE/models.json"
 CLEAN_DIR="/path/to/clean_images"
 AA_IMGNET_ADV="/path/to/generated_attacks/aa_th_aware/imgnet/adv"
 AA_FR_ADV="/path/to/generated_attacks/aa_th_aware/fr_pretrain/adv"
@@ -258,7 +298,7 @@ RESULT_DIR="/path/to/results"
 "$PYTHON" ./attacks/evaluate_success_efficient.py \
     --clean_dir "$CLEAN_DIR" \
     --adv_roots "$AA_IMGNET_ADV" "$AA_FR_ADV" \
-    --models_json ./attacks/models_to_eval.json \
+    --models_json "$MODELS_JSON" \
     --batch_size 512 \
     --num_workers 8 \
     --output_csv "$RESULT_DIR/transfer_results_aa_th_aware.csv"
@@ -283,7 +323,7 @@ while retaining other eligible sources:
 "$PYTHON" ./attacks/evaluate_transfer_oracle.py \
     --clean_dir "$CLEAN_DIR" \
     --adv_roots "imgnet=$AA_IMGNET_ADV" "fr=$AA_FR_ADV" \
-    --models_json ./attacks/models_to_eval.json \
+    --models_json "$MODELS_JSON" \
     --batch_size 512 \
     --num_workers 8 \
     --output_csv "$RESULT_DIR/transfer_results_aa_self_excluded_individual.csv" \
@@ -302,7 +342,7 @@ sources:
 "$PYTHON" ./attacks/evaluate_transfer_oracle.py \
     --clean_dir "$CLEAN_DIR" \
     --adv_roots "imgnet=$AA_IMGNET_ADV" "fr=$AA_FR_ADV" \
-    --models_json ./attacks/models_to_eval.json \
+    --models_json "$MODELS_JSON" \
     --batch_size 512 \
     --num_workers 8 \
     --output_csv "$RESULT_DIR/transfer_results_aa_strict_individual.csv" \
@@ -334,7 +374,7 @@ The oracle evaluator writes:
 
 Before running a complete evaluation, verify that:
 
-1. All paths in `models_to_eval.json` resolve from the repository root.
+1. The supplied model manifest resolves all 60 config/checkpoint paths. For the public model release, use its bundled `models.json`.
 2. Every checkpoint has a valid threshold JSON file.
 3. The clean input directory contains the expected image identifiers.
 4. ImageNet and face-recognition sources are written to distinct output groups.
