@@ -75,6 +75,10 @@ PYTHON="${PYTHON:-python}"
 
 ## Required checkpoint files
 
+Released detector checkpoints are available at:
+
+https://huggingface.co/poisonedchicken/deepfake-adversarial-transfer-models
+
 Each model entry in `models_to_eval.json` contains:
 
 - `name`: canonical detector identifier.
