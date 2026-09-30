@@ -9,7 +9,9 @@ statistical analysis.
 The fastest reproducibility path is the analysis-only workflow below. It uses
 the included CSV files and does not require the original image datasets or a
 GPU. Reproducing preprocessing, training, or attacks requires the corresponding
-datasets and trained model weights at user-configured local paths.
+datasets and model weights. The released detector checkpoints and generated
+adversarial examples are hosted separately on Hugging Face to avoid duplicating
+large binary artifacts in this Git repository.
 
 ## Repository structure
 
@@ -30,6 +32,24 @@ datasets and trained model weights at user-configured local paths.
 
 Each workflow folder contains its own README with stage-specific inputs,
 configuration, and commands.
+
+## Released artifacts
+
+Large experiment artifacts are hosted on Hugging Face rather than versioned in
+this repository:
+
+- **Detector models and checkpoints:** https://huggingface.co/poisonedchicken/deepfake-adversarial-transfer-models
+- **Adversarial-example dataset:** https://huggingface.co/datasets/poisonedchicken/deepfake-adversarial-transfer
+
+The Hugging Face model repository contains the released detector weights used
+for the benchmark. The dataset repository contains the released adversarial
+examples and associated metadata. These are the canonical locations for large
+binary artifacts associated with this project.
+
+Model checkpoint files such as `*.pth`, `*.pt`, and `*.ckpt` are
+intentionally excluded from this Git repository. Local checkpoint directories
+are also ignored so that cloning the code repository does not duplicate the
+model release.
 
 ## Methods represented in this archive
 
