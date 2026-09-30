@@ -1,0 +1,31 @@
+# Python and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Credentials and local editor settings
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+.DS_Store
+
+# Training artifacts and machine-local data
+checkpoints/
+runs/
+wandb/
+logs/
+*.pth
+*.pt
+*.ckpt
+slurm-*.out
+slurm.*.out
+slurm.*.err
+/data/
+/datasets/raw/
+
+# Keep the submitted analysis inputs and outputs in the initial snapshot.
+# Add specific generated output directories here as new experiments are run.
