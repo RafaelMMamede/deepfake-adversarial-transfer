@@ -1,0 +1,21 @@
+# Normalize text files across platforms
+* text=auto
+
+*.py text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.csv text eol=lf
+*.tex text eol=lf
+
+# Binary artifacts
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.whl binary
+*.pth binary
+*.pt binary
+*.ckpt binary
