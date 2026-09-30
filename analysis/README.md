@@ -15,6 +15,13 @@ The detector bank contains six backbones, two pretraining regimes, and five mani
 
 All analyses operate on the included CSV summaries. Regenerating the tables, statistical tests, and figures does not require access to the original images or attack directories.
 
+Some CSV columns such as `checkpoint`, `eval_config`, `root_path`,
+`json_path`, and `attack_path` preserve provenance from the original
+experiment runs. Treat those values as historical metadata rather than portable
+input paths. The active portable detector/training configurations are the files
+under `training/config/`, and released model paths are provided by the
+Hugging Face model repository's `models.json`.
+
 ## Directory structure
 
 ```text
