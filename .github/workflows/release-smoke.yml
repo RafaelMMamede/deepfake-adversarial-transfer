@@ -33,11 +33,14 @@ jobs:
       - name: Validate release metadata and manifests
         run: |
           python - <<'PY'
+          import ast
           import csv
+          import hashlib
           import json
           import pathlib
           import re
           import subprocess
+          import zipfile
 
           import yaml
 
@@ -52,6 +55,25 @@ jobs:
               for path in root.rglob(pattern):
                   with path.open("r", encoding="utf-8") as f:
                       yaml.safe_load(f)
+
+          # The exact training/attack environment is Python 3.7. Reject syntax
+          # that could only parse on newer Python versions.
+          for path in root.rglob("*.py"):
+              source = path.read_text(encoding="utf-8")
+              ast.parse(source, filename=str(path), feature_version=(3, 7))
+
+          # Verify the single bundled third-party binary.
+          wheel = pathlib.Path("wheels/autoattack-0.1-py3-none-any.whl")
+          expected_sha256 = "f5a3e2641abfca1af0b4548d11f2e3e0a00d11df9c07ae8c9de054dccb56e6ac"
+          actual_sha256 = hashlib.sha256(wheel.read_bytes()).hexdigest()
+          assert actual_sha256 == expected_sha256, (
+              f"AutoAttack wheel checksum mismatch: {actual_sha256}"
+          )
+          with zipfile.ZipFile(wheel) as zf:
+              assert any(
+                  pathlib.PurePosixPath(name).name == "LICENSE"
+                  for name in zf.namelist()
+              ), "Bundled AutoAttack wheel does not contain its upstream LICENSE"
 
           # Citation metadata is YAML and should expose the expected essentials.
           citation = yaml.safe_load(pathlib.Path("CITATION.cff").read_text(encoding="utf-8"))
@@ -125,11 +147,29 @@ jobs:
           assert family_counts == {"FS": 500, "FR": 500, "FE": 500, "EFS": 500}
           assert all(r["frame_path"].startswith("datasets/") for r in rows)
 
-          # No checkpoint binaries should be tracked in Git.
+          # No checkpoint binaries, raw datasets, or GitHub-rejected large files
+          # should be tracked in Git.
           tracked = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
+          tracked = [p for p in tracked if p]
+
           forbidden_binary_suffixes = (".pth", ".pt", ".ckpt")
           tracked_binaries = [p for p in tracked if p.endswith(forbidden_binary_suffixes)]
           assert not tracked_binaries, f"Tracked model binaries: {tracked_binaries}"
+
+          tracked_dataset_files = [
+              p for p in tracked
+              if p.startswith("datasets/") and p != "datasets/readme.md"
+          ]
+          assert not tracked_dataset_files, (
+              f"Raw/local dataset files are tracked: {tracked_dataset_files[:20]}"
+          )
+
+          too_large = [
+              p for p in tracked
+              if pathlib.Path(p).is_file()
+              and pathlib.Path(p).stat().st_size >= 100 * 1024 * 1024
+          ]
+          assert not too_large, f"Tracked files exceed GitHub's 100 MiB limit: {too_large}"
 
           # Public-release hygiene: no machine-specific absolute roots or review-only markers.
           patterns = [
