@@ -117,7 +117,7 @@ Use that repository as the canonical source for the benchmark checkpoints.
 Local `*.pth`, `*.pt`, and `*.ckpt` files are intentionally ignored by
 Git to avoid duplicating the model release.
 
-ImageNet- and face-recognition-pretrained backbone files are not included in this directory. Their acquisition or generation, filenames, and checksums are documented in the package-level README.
+ImageNet- and face-recognition-pretrained initialization files are not committed to this directory. To reproduce training from scratch, provide the initialization files expected by the selected detector configuration; the face-recognition initialization can be regenerated with the workflow in `pretraining/`. Final trained detector checkpoints are released through the Hugging Face model repository above.
 
 Face-recognition-pretrained checkpoints can be converted to the detector-compatible backbone format using:
 
