@@ -39,7 +39,7 @@ The detector set contains:
 - Pretraining: ImageNet (`imgnet`) and face-recognition pretraining (`fr`).
 - Training families: `ALL`, `FS`, `FR`, `FE`, and `EFS`.
 
-Target detector identifiers in `models_to_eval.json` follow:
+Target detector identifiers in both the release and provenance manifests follow:
 
 ```text
 <pretraining>_<backbone>_<training_family>
@@ -134,10 +134,11 @@ threshold.json
 ```
 
 The JSON file must contain a numeric `threshold` field strictly between 0 and
-1. A typical layout is:
+1. A typical release-model directory is:
 
 ```text
-saved_models/<model>/val/val/
+<model>/
+├── config.yaml
 ├── ckpt_best.pth
 └── best_threshold.json
 ```
@@ -175,8 +176,9 @@ Set the paths and source identifier for one detector:
 PYTHON="${PYTHON:-python}"
 CLEAN_DIR="/path/to/clean_images"
 ATTACK_OUT="/path/to/generated_attacks/aa_th_aware/imgnet"
-CHECKPOINT="./saved_models/<model>/val/val/ckpt_best.pth"
-CONFIG="./training/config/detector/<config>.yaml"
+MODEL_DIR="/path/to/deepfake-adversarial-transfer-models/imgnet/<model>"
+CHECKPOINT="$MODEL_DIR/ckpt_best.pth"
+CONFIG="$MODEL_DIR/config.yaml"
 MODEL_TAG="xception_FS"
 ```
 
@@ -211,8 +213,9 @@ Set the paths and source identifier for one detector:
 PYTHON="${PYTHON:-python}"
 CLEAN_DIR="/path/to/clean_images"
 ATTACK_OUT="/path/to/generated_attacks/cw_eot_th_aware/imgnet"
-CHECKPOINT="./saved_models/<model>/val/val/ckpt_best.pth"
-CONFIG="./training/config/detector/<config>.yaml"
+MODEL_DIR="/path/to/deepfake-adversarial-transfer-models/imgnet/<model>"
+CHECKPOINT="$MODEL_DIR/ckpt_best.pth"
+CONFIG="$MODEL_DIR/config.yaml"
 MODEL_TAG="xception_FS"
 ```
 
@@ -275,13 +278,13 @@ models:
 <attack>/fr_pretrain/
 ```
 
-Repeat attack generation for the applicable detector entries in
-`models_to_eval.json`.
+Repeat attack generation for the applicable detector entries in the released
+model manifest.
 
 ## Evaluate single-source transfer
 
 `evaluate_success_efficient.py` evaluates every discovered adversarial source
-against every target in `models_to_eval.json`. Each adversarial root must point
+against every target in the manifest supplied through `--models_json`. Each adversarial root must point
 to an `adv/` directory containing `<MODEL_TAG>/<attack_name>/` subdirectories.
 
 Example for AutoAttack:
