@@ -1103,8 +1103,32 @@ def main():
     # ---------------------------------------
     # load model list
     # ---------------------------------------
-    with open(args.models_json) as f:
+    models_manifest = Path(args.models_json).resolve()
+    with open(models_manifest) as f:
         models = json.load(f)
+
+    # Resolve release manifests portably. Paths are first interpreted relative
+    # to the manifest itself (e.g. a downloaded Hugging Face model pack), then
+    # relative to the current working directory for the original experiment
+    # manifest retained in this repository.
+    manifest_dir = models_manifest.parent
+    for model_info in models:
+        for path_key in ("config", "ckpt"):
+            raw_path = Path(model_info[path_key]).expanduser()
+            if raw_path.is_absolute():
+                resolved_path = raw_path
+            else:
+                manifest_candidate = (manifest_dir / raw_path).resolve()
+                cwd_candidate = (Path.cwd() / raw_path).resolve()
+                if manifest_candidate.exists():
+                    resolved_path = manifest_candidate
+                elif cwd_candidate.exists():
+                    resolved_path = cwd_candidate
+                else:
+                    # Keep the original value so downstream errors still show
+                    # the manifest entry the user supplied.
+                    resolved_path = raw_path
+            model_info[path_key] = str(resolved_path)
 
     # ---------------------------------------
     # load previous results / determine skip list
