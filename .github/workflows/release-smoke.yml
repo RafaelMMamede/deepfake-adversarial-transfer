@@ -30,6 +30,9 @@ jobs:
             analysis/tools \
             analysis/transfer_analysis_node_jackknife.py
 
+      - name: Validate shell entry points
+        run: bash -n attacks/run_aa.sh attacks/run_cw_eot.sh
+
       - name: Validate release metadata and manifests
         run: |
           python - <<'PY'
