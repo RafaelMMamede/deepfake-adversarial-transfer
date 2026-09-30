@@ -195,7 +195,7 @@ This checks imports and registration only. A complete reproduction still require
 - All experiments use 224 × 224 RGB inputs and a 512-dimensional FR embedding.
 - The supplied configurations use ElasticArcFace+ and validate on RFW.
 - GPU kernels may remain nondeterministic unless deterministic PyTorch settings are explicitly enabled.
-- Dataset indexes are generated locally and must not be treated as portable submission artifacts.
+- Dataset indexes generated locally for pretraining should remain machine-local unless they are explicitly normalized and documented for release.
 
 ## Scope
 
