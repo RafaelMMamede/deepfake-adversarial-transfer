@@ -41,5 +41,5 @@ slurm.*.err
 /results/
 /preprocessing/json_verify_reports/
 
-# Keep the submitted analysis inputs and outputs in the initial snapshot.
+# Keep the released analysis inputs and outputs in the repository.
 # Add specific generated output directories here as new experiments are run.
