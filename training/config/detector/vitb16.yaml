@@ -1,0 +1,136 @@
+# ---------------------------------------
+# MODEL
+# ---------------------------------------
+model_name: vit_detector_custom
+
+# backbone
+backbone_name: vit_base_patch16_224
+
+# ImageNet pretraining through timm
+pretrained: true
+checkpoint_path: null
+
+img_size: 224
+in_chans: 3
+
+# classifier head
+classifier_hidden_dim: 256
+classifier_dropout: 0.10
+
+# ViT regularization
+attn_drop_rate: 0.0
+drop_path_rate: 0.05
+drop_rate: 0.0
+
+# ---------------------------------------
+# DATASET
+# ---------------------------------------
+compression: c23
+train_batchSize: 128
+test_batchSize: 128
+workers: 8
+
+frame_num:
+  train: 1
+  val: 1
+  test: 1
+
+# ViT-B/16 expects 224
+resolution: 224
+
+with_mask: false
+with_landmark: false
+
+# ---------------------------------------
+# DATA AUGMENTATION
+# ---------------------------------------
+use_data_augmentation: true
+
+data_aug:
+  flip_prob: 0.5
+  rotate_prob: 0.0
+  rotate_limit: [-10, 10]
+
+  blur_prob: 0.5
+  blur_limit: [3, 7]
+
+  brightness_prob: 0.5
+  brightness_limit: [-0.1, 0.1]
+
+  contrast_limit: [-0.1, 0.1]
+
+  quality_lower: 40
+  quality_upper: 100
+
+# ---------------------------------------
+# NORMALIZATION
+# ---------------------------------------
+# ImageNet normalization for timm-pretrained ViT
+mean: [0.485, 0.456, 0.406]
+std: [0.229, 0.224, 0.225]
+
+# ---------------------------------------
+# OPTIMIZER
+# ---------------------------------------
+optimizer:
+  type: adamw
+
+  adamw:
+
+    lr: 0.0001
+
+
+    backbone_lr: 0.00002
+    head_lr: 0.0003
+
+    beta1: 0.9
+    beta2: 0.999
+
+    eps: 0.00000001
+
+
+    weight_decay: 0.01
+
+    amsgrad: false
+
+# ---------------------------------------
+# LR SCHEDULER
+# ---------------------------------------
+lr_scheduler: cosine
+warmup_epochs: 5
+warmup_start_factor: 0.1
+lr_T_max: 45
+lr_eta_min: 0.000001
+
+# ---------------------------------------
+# TRAINING
+# ---------------------------------------
+nEpochs: 50
+
+start_epoch: 0
+save_epoch: 1
+
+rec_iter: 100
+
+logdir: ./logs
+log_dir: ./logs/testing_bench
+
+manualSeed: 42
+
+save_ckpt: true
+save_feat: false
+
+# ---------------------------------------
+# LOSS / METRIC
+# ---------------------------------------
+loss_func: cross_entropy
+
+losstype: null
+
+metric_scoring: auc
+
+# ---------------------------------------
+# CUDA
+# ---------------------------------------
+cuda: true
+cudnn: true

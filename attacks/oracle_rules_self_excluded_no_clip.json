@@ -1,0 +1,13 @@
+{
+  "default": {
+    "exclude_self_origin": true,
+    "exclude_same_training_data": false,
+    "exclude_same_architecture": false,
+    "exclude_train_tags_as_source": [],
+    "exclude_source_groups": [],
+    "exclude_origin_keys": [],
+    "exclude_origin_models": ["clip"],
+    "exclude_origin_contains": [],
+    "exclude_attack_name_contains": []
+  }
+}

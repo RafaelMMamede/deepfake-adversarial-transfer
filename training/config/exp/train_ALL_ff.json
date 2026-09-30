@@ -1,0 +1,205 @@
+{
+  "name": "train_ALL_ff",
+
+  "train": {
+    "real": ["DF40_TRAIN_real_ff"],
+    "fake": [
+      "DF40_TRAIN_FS_ff",
+      "DF40_TRAIN_FR_ff",
+      "DF40_TRAIN_EFS_ff",
+      "DF40_TRAIN_FE_ff"
+    ]
+  },
+
+  "val": {
+    "real": ["DF40_TRAIN_real_ff"],
+    "fake": [
+      "DF40_TRAIN_FS_ff",
+      "DF40_TRAIN_FR_ff",
+      "DF40_TRAIN_EFS_ff",
+      "DF40_TRAIN_FE_ff"
+    ]
+  },
+
+
+  "test": {
+    "FS_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": ["DF40_TEST_FS_ff"]
+    },
+    "FR_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": ["DF40_TEST_FR_ff"]
+    },
+    "EFS_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": ["DF40_TEST_EFS_ff"]
+    },
+    "FE_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": ["DF40_TEST_FE_ff"]
+    },
+    "ALL_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": [
+        "DF40_TEST_FS_ff",
+        "DF40_TEST_FR_ff",
+        "DF40_TEST_EFS_ff",
+        "DF40_TEST_FE_ff"
+      ]
+    },
+    "ALL_sans_FS_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": [
+        "DF40_TEST_FR_ff",
+        "DF40_TEST_EFS_ff",
+        "DF40_TEST_FE_ff"
+      ]
+    },
+    "ALL_sans_FR_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": [
+        "DF40_TEST_FS_ff",
+        "DF40_TEST_EFS_ff",
+        "DF40_TEST_FE_ff"
+      ]
+    },
+    "ALL_sans_EFS_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": [
+        "DF40_TEST_FS_ff",
+        "DF40_TEST_FR_ff",
+        "DF40_TEST_FE_ff"
+      ]
+    },
+    "ALL_sans_FE_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": [
+        "DF40_TEST_FS_ff",
+        "DF40_TEST_FR_ff",
+        "DF40_TEST_EFS_ff"
+      ]
+    },
+
+    "FS_cdf": {
+      "real": ["DF40_TEST_real_cdfv1"],
+      "fake": ["DF40_TEST_FS_cdf"]
+    },
+    "FR_cdf": {
+      "real": ["DF40_TEST_real_cdfv1"],
+      "fake": ["DF40_TEST_FR_cdf"]
+    },
+    "EFS_cdf": {
+      "real": ["DF40_TEST_real_cdfv1"],
+      "fake": ["DF40_TEST_EFS_cdf"]
+    },
+    "FE_cdf": {
+      "real": ["DF40_TEST_real_cdfv1"],
+      "fake": ["DF40_TEST_FE_cdf"]
+    },
+    "ALL_cdf": {
+      "real": ["DF40_TEST_real_cdfv1"],
+      "fake": [
+        "DF40_TEST_FS_cdf",
+        "DF40_TEST_FR_cdf",
+        "DF40_TEST_EFS_cdf",
+        "DF40_TEST_FE_cdf"
+      ]
+    },
+    "ALL_sans_FS_cdf": {
+      "real": ["DF40_TEST_real_cdfv1"],
+      "fake": [
+        "DF40_TEST_FR_cdf",
+        "DF40_TEST_EFS_cdf",
+        "DF40_TEST_FE_cdf"
+      ]
+    },
+    "ALL_sans_FR_cdf": {
+      "real": ["DF40_TEST_real_cdfv1"],
+      "fake": [
+        "DF40_TEST_FS_cdf",
+        "DF40_TEST_EFS_cdf",
+        "DF40_TEST_FE_cdf"
+      ]
+    },
+    "ALL_sans_EFS_cdf": {
+      "real": ["DF40_TEST_real_cdfv1"],
+      "fake": [
+        "DF40_TEST_FS_cdf",
+        "DF40_TEST_FR_cdf",
+        "DF40_TEST_FE_cdf"
+      ]
+    },
+    "ALL_sans_FE_cdf": {
+      "real": ["DF40_TEST_real_cdfv1"],
+      "fake": [
+        "DF40_TEST_FS_cdf",
+        "DF40_TEST_FR_cdf",
+        "DF40_TEST_EFS_cdf"
+      ]
+    },
+
+    "FS_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": ["DF40_TEST_FS_other"]
+    },
+    "FR_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": ["DF40_TEST_FR_other"]
+    },
+    "EFS_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": ["DF40_TEST_EFS_other"]
+    },
+    "FE_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": ["DF40_TEST_FE_other"]
+    },
+    "ALL_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": [
+        "DF40_TEST_FS_other",
+        "DF40_TEST_FR_other",
+        "DF40_TEST_EFS_other",
+        "DF40_TEST_FE_other"
+      ]
+    },
+    "ALL_sans_FS_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": [
+        "DF40_TEST_FR_other",
+        "DF40_TEST_EFS_other",
+        "DF40_TEST_FE_other"
+      ]
+    },
+    "ALL_sans_FR_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": [
+        "DF40_TEST_FS_other",
+        "DF40_TEST_EFS_other",
+        "DF40_TEST_FE_other"
+      ]
+    },
+    "ALL_sans_EFS_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": [
+        "DF40_TEST_FS_other",
+        "DF40_TEST_FR_other",
+        "DF40_TEST_FE_other"
+      ]
+    },
+    "ALL_sans_FE_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": [
+        "DF40_TEST_FS_other",
+        "DF40_TEST_FR_other",
+        "DF40_TEST_EFS_other"
+      ]
+    },
+
+    "CDF_v2": {
+      "real": ["DF40_TEST_real_cdf"],
+      "fake": ["TEST_fake_cdf"]
+    }
+  }
+}

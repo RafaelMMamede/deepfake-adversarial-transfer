@@ -1,0 +1,75 @@
+{
+  "name": "train_FR_ff",
+
+  "train": {
+    "real": ["DF40_TRAIN_real_ff"],
+    "fake": ["DF40_TRAIN_FR_ff"]
+  },
+
+  "val": {
+    "real": ["DF40_TRAIN_real_ff"],
+    "fake": [
+      "DF40_TRAIN_FS_ff",
+      "DF40_TRAIN_FR_ff",
+      "DF40_TRAIN_EFS_ff",
+      "DF40_TRAIN_FE_ff"
+    ]
+  },
+
+  "test": {
+    "FS_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": ["DF40_TEST_FS_ff"]
+    },
+    "FR_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": ["DF40_TEST_FR_ff"]
+    },
+    "EFS_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": ["DF40_TEST_EFS_ff"]
+    },
+    "FE_ff": {
+      "real": ["DF40_TEST_real_ff"],
+      "fake": ["DF40_TEST_FE_ff"]
+    },
+
+    "FS_cdf": {
+      "real": ["DF40_TEST_real_cdf"],
+      "fake": ["DF40_TEST_FS_cdf"]
+    },
+    "FR_cdf": {
+      "real": ["DF40_TEST_real_cdf"],
+      "fake": ["DF40_TEST_FR_cdf"]
+    },
+    "EFS_cdf": {
+      "real": ["DF40_TEST_real_cdf"],
+      "fake": ["DF40_TEST_EFS_cdf"]
+    },
+    "FE_cdf": {
+      "real": ["DF40_TEST_real_cdf"],
+      "fake": ["DF40_TEST_FE_cdf"]
+    },
+
+    "FS_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": ["DF40_TEST_FS_other"]
+    },
+    "FR_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": ["DF40_TEST_FR_other"]
+    },
+    "EFS_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": ["DF40_TEST_EFS_other"]
+    },
+    "FE_other": {
+      "real": ["DF40_TEST_real_other"],
+      "fake": ["DF40_TEST_FE_other"]
+    },
+    "CDF_v2": {
+      "real": ["DF40_TEST_real_cdf"],
+      "fake": ["TEST_fake_cdf"]
+    }
+  }
+}

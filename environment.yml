@@ -11,3 +11,4 @@ dependencies:
   - wheel=0.42.0
   - cmake=4.2.2
   - dlib=19.24.0
+
