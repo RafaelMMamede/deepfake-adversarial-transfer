@@ -1,0 +1,26 @@
+# License
+
+Unless otherwise noted, the original material in this repository is
+copyright © 2026 Rafael M. Mamede, Pedro C. Neto, and Ana F. Sequeira and is
+licensed under the Creative Commons Attribution-NonCommercial 4.0 International
+License (CC BY-NC 4.0).
+
+License summary and legal code:
+https://creativecommons.org/licenses/by-nc/4.0/
+
+You may share and adapt the material under the terms of CC BY-NC 4.0, including
+appropriate attribution and non-commercial use requirements.
+
+## Third-party material
+
+Portions of this repository are adapted from DeepfakeBench, which is also
+released under CC BY-NC 4.0 by The Chinese University of Hong Kong, Shenzhen.
+
+The bundled AutoAttack component is distributed under the MIT License by its
+upstream authors.
+
+Other third-party dependencies remain subject to their respective licenses.
+See `THIRD_PARTY_NOTICES.md` for attribution and links.
+
+This license does not override or replace the terms that apply to third-party
+software, datasets, pretrained weights, or other external resources.
