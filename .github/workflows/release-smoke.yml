@@ -289,3 +289,35 @@ jobs:
               f"({len(changed)} regenerated files changed only within accepted numerical tolerance)"
           )
           PY
+
+
+  legacy-environment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Resolve exact legacy Conda environment
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: environment.yml
+          activate-environment: deepfake-transfer
+          auto-activate-base: false
+
+      - name: Verify legacy interpreter and packaging tools
+        shell: bash -el {0}
+        run: |
+          python --version
+          python -m pip --version
+          python - <<'PY'
+          import sys
+          import dlib
+
+          assert sys.version_info[:2] == (3, 7), sys.version
+          assert dlib.__version__.startswith("19.24"), dlib.__version__
+          print("Legacy Conda environment: PASS")
+          PY
+
+      - name: Resolve pinned pip requirements without installing
+        shell: bash -el {0}
+        run: python -m pip install --dry-run -r requirements.txt
