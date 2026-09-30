@@ -1,0 +1,10 @@
+# Modern CPU-only environment for reproducing the included analysis.
+# This is intentionally separate from the legacy Python 3.7 / PyTorch 1.12
+# environment required for exact training and attack-generation reproduction.
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.13.1
+matplotlib==3.8.4
+seaborn==0.13.2
+ipykernel==6.29.5
+nbconvert==7.16.4
