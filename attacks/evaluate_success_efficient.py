@@ -625,7 +625,15 @@ def main():
         help="One or more adversarial roots with structure root/origin_model/attack_name/images.",
     )
 
-    parser.add_argument("--models_json", required=True)
+    parser.add_argument(
+        "--models_json",
+        required=True,
+        help=(
+            "Path to detector manifest. Relative config/checkpoint paths are "
+            "resolved against the manifest directory, with the current working "
+            "directory retained as a fallback for the provenance manifest."
+        ),
+    )
     parser.add_argument("--batch_size", type=int, default=512)
     parser.add_argument("--num_workers", type=int, default=8)
     parser.add_argument("--output_csv", default="transfer_results_single_adv_loader.csv")
