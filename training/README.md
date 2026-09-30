@@ -104,7 +104,10 @@ swin_custom_unfreeze_all_fr_pretrain.yaml
 
 ## Pretrained backbones
 
-The detector YAML files contain the expected relative paths for their initial backbone weights.
+The detector YAML files contain the expected relative paths for their initial
+backbone weights. Exact ImageNet checkpoint filenames, upstream download
+sources, ViT's `timm` initialization behavior, and the FR-pretraining export
+workflow are documented in `training/pretrained/README.md`.
 
 ## Released detector checkpoints
 
@@ -114,6 +117,10 @@ to this Git repository:
 https://huggingface.co/poisonedchicken/deepfake-adversarial-transfer-models
 
 Use that repository as the canonical source for the benchmark checkpoints.
+Its bundled `models.json` is the portable manifest for the 60 released
+detectors; its relative paths are resolved against the model-release directory
+by the transfer evaluation scripts.
+
 Local `*.pth`, `*.pt`, and `*.ckpt` files are intentionally ignored by
 Git to avoid duplicating the model release.
 
@@ -180,7 +187,11 @@ python training/test_with_best_val_th.py \
   --dataset_json_folder ./preprocessing/dataset_json
 ```
 
-The evaluated detector checkpoints are not included in this Git directory. Download them from the Hugging Face model repository above and place or symlink them into the local paths expected by `models_to_eval.json` and your evaluation commands.
+The evaluated detector checkpoints are not included in this Git directory.
+For direct clean evaluation, point `--detector_path` and `--ckpt` at the
+corresponding files in the downloaded Hugging Face model release. For
+multi-model transfer evaluation, use the release's bundled `models.json`
+rather than recreating the original timestamped training directories.
 
 ## Import smoke test
 
