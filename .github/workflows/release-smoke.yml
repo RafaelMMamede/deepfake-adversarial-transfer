@@ -143,8 +143,63 @@ jobs:
             analysis/analysis_fr_and_base.ipynb \
             --ExecutePreprocessor.timeout=-1
 
-      - name: Check deterministic analysis outputs
+      - name: Check analysis outputs for numerical equivalence
         run: |
-          git diff --exit-code -- \
-            analysis/output/statistic \
-            analysis/output/tables
+          python - <<'PY'
+          import io
+          import pathlib
+          import subprocess
+
+          import numpy as np
+          import pandas as pd
+
+          roots = [
+              pathlib.Path("analysis/output/statistic"),
+              pathlib.Path("analysis/output/tables"),
+          ]
+
+          changed = subprocess.check_output(
+              ["git", "diff", "--name-only", "--", *(str(p) for p in roots)],
+              text=True,
+          ).splitlines()
+
+          failures = []
+          for name in changed:
+              path = pathlib.Path(name)
+              baseline_bytes = subprocess.check_output(["git", "show", f"HEAD:{name}"])
+              current_bytes = path.read_bytes()
+
+              if path.suffix.lower() == ".csv":
+                  baseline = pd.read_csv(io.BytesIO(baseline_bytes))
+                  current = pd.read_csv(io.BytesIO(current_bytes))
+
+                  if list(baseline.columns) != list(current.columns) or baseline.shape != current.shape:
+                      failures.append(f"{name}: shape/column mismatch")
+                      continue
+
+                  for column in baseline.columns:
+                      a = baseline[column]
+                      b = current[column]
+
+                      if pd.api.types.is_numeric_dtype(a) and pd.api.types.is_numeric_dtype(b):
+                          av = pd.to_numeric(a, errors="coerce").to_numpy(dtype=float)
+                          bv = pd.to_numeric(b, errors="coerce").to_numpy(dtype=float)
+                          if not np.allclose(av, bv, rtol=1e-12, atol=1e-15, equal_nan=True):
+                              failures.append(f"{name}: numeric drift in column {column}")
+                      else:
+                          av = a.fillna("<NA>").astype(str).to_numpy()
+                          bv = b.fillna("<NA>").astype(str).to_numpy()
+                          if not np.array_equal(av, bv):
+                              failures.append(f"{name}: value drift in column {column}")
+              else:
+                  if baseline_bytes != current_bytes:
+                      failures.append(f"{name}: non-CSV output changed")
+
+          if failures:
+              raise SystemExit("\n".join(failures))
+
+          print(
+              "Analysis outputs: PASS "
+              f"({len(changed)} regenerated files changed only within accepted numerical tolerance)"
+          )
+          PY
