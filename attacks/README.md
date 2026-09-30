@@ -103,6 +103,17 @@ saved_models/<model>/val/val/
 The release commands do not enable threshold fallback. A missing threshold file
 therefore stops execution instead of silently using 0.5.
 
+## Released adversarial examples
+
+The adversarial examples generated for the study are hosted on Hugging Face:
+
+https://huggingface.co/datasets/poisonedchicken/deepfake-adversarial-transfer
+
+Use that dataset when you want to reproduce transfer evaluation or analysis
+without regenerating all AA and CW-EOT examples locally. This Git repository
+keeps the attack-generation and evaluation code, while the generated image
+artifacts are maintained in the Hugging Face dataset release.
+
 ## Input images
 
 `--input_dir` must point to the clean images used to construct the attack set.
