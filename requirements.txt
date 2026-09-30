@@ -97,5 +97,5 @@ zipp==3.15.0
 ipykernel==6.16.2
 nbconvert==7.6.0
 
-# Patched Python 3.7-compatible AutoAttack wheel bundled with the submission.
+# Patched Python 3.7-compatible AutoAttack wheel bundled with this release.
 ./wheels/autoattack-0.1-py3-none-any.whl
