@@ -42,23 +42,22 @@ The output directories are created automatically if they do not already exist.
 
 ## Environment
 
-Use the environment specification provided at the repository root. The analysis requires the following principal Python packages:
-
-- `pandas`
-- `numpy`
-- `scipy`
-- `matplotlib`
-- `seaborn`
-- `jupyter` or `jupyterlab`
-
-When using the repository-level Conda environment, create and activate it from the repository root:
+For analysis-only reproduction, use the modern CPU environment defined at the
+repository root:
 
 ```bash
-conda env create -f environment.yml
-conda activate deepfake-transfer
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-analysis.txt
 ```
 
-If the environment already exists, only the activation step is required. The exact environment name is the value of the `name` field in `environment.yml`.
+This environment includes the analysis dependencies (`pandas`, `numpy`,
+`scipy`, `matplotlib`, `seaborn`, `ipykernel`, and `nbconvert`) and is
+validated in CI by executing this notebook from start to finish.
+
+The legacy `environment.yml` / `requirements.txt` environment is only needed
+when reproducing detector training or attack generation with the original
+Python 3.7 / PyTorch 1.12 stack.
 
 ## Running the analysis
 
