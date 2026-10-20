@@ -2,9 +2,10 @@
 
 This directory contains the data summaries, statistical analysis code, notebook, and generated artifacts used for the source-to-target adversarial-transfer evaluation across a bank of 60 deepfake detectors.
 
-The released analysis covers two attacks:
+The current notebook covers three attack configurations:
 
 - AutoAttack (`AA`)
+- Carlini-Wagner without EOT (`CW without EOT`)
 - Carlini-Wagner with Expectation over Transformation (`CW-EOT`)
 
 The detector bank contains six backbones, two pretraining regimes, and five manipulation-training configurations:
@@ -28,11 +29,15 @@ Hugging Face model repository's `models.json`.
 analysis/
 ├── README.md
 ├── analysis_fr_and_base.ipynb
-├── transfer_analysis_node_jackknife.py
+├── transfer_analysis_node_jackknife.py  # retained legacy helper
+├── transfer_analysis_three_attacks.py
 ├── data/
 │   ├── all_model_results.csv
 │   ├── transfer_results_aa_th_aware.csv
 │   ├── transfer_results_cw_eot_th_aware.csv
+│   ├── transfer_results_cw_no_eot_th_aware.csv
+│   ├── transfer_results_cw_strict_oracle.csv
+│   ├── transfer_results_cw_self_excluded_oracle.csv
 │   ├── transfer_results_aa_strict_oracle.csv
 │   ├── transfer_results_aa_self_excluded_oracle.csv
 │   ├── transfer_results_cw_eot_strict_oracle.csv
@@ -90,7 +95,9 @@ jupyter nbconvert \
 ```
 
 
-The notebook imports the statistical helpers from `transfer_analysis_node_jackknife.py` and writes regenerated artifacts under `output/`.
+The notebook imports `transfer_analysis_three_attacks.py` and writes regenerated artifacts under `output/three_attacks/`. The original `transfer_analysis_node_jackknife.py` remains available for historical reproduction.
+
+`SENSITIVITY_WITH_CIS=False` skips nested jackknife intervals for group-omission diagnostics while retaining their point estimates. The primary full-bank statistical tests still include node-jackknife intervals.
 
 ## Portable path fields
 
@@ -126,11 +133,25 @@ The analysis reports:
 - source-to-target transfer matrices;
 - compatibility contrasts for shared backbone, architecture family, pretraining, and training data;
 - directional source-target contrasts;
-- the paired overall difference between CW-EOT and AA;
+- all three paired overall attack differences and dedicated CW-EOT versus CW-without-EOT compatibility contrasts;
 - strict and self-excluding multi-source oracle summaries; and
 - leave-one-group-out sensitivity analyses.
 
-Uncertainty for the prespecified contrasts is estimated with a leave-one-detector-out node jackknife. Each deletion removes the detector in both its source and target roles before recomputing the complete estimator. Approximate 95% confidence intervals and two-sided p-values use the resulting jackknife standard error and a standard-normal reference distribution. Holm correction is applied jointly across the 19 prespecified tests.
+Uncertainty for the prespecified contrasts is estimated with a leave-one-detector-out node jackknife. Each deletion removes the detector in both its source and target roles before recomputing the complete estimator. Approximate 95% confidence intervals and two-sided p-values use the resulting jackknife standard error and a standard-normal reference distribution. The expanded follow-up analysis applies Holm correction jointly across 36 tests (7 per attack and 5 per attack pair). The original 19-test AA/CW-EOT correction is retained in separately labelled `p_holm_legacy` columns for reproduction. The expanded hypotheses are not described as preregistered.
+
+CLIP sources and targets are excluded from all analysis tables and figures. The main bank contains exactly 60 detectors.
+
+## Oracle inputs and provenance
+
+The `cw` prefix in the new oracle filenames means CW **without** EOT. The helper also accepts `cw_no_eot`. The new CW pairwise CSV is a compact, non-CLIP projection of the uploaded `transfer_results_cw_strict_individual.csv`, with complete source IDs taken from `origin_key`. All retained metrics are unchanged. Oracle rules affect candidate selection, so the underlying individual results can be used for the pairwise summary.
+
+The CW oracle summaries and selected-source counts are similarly restricted to non-CLIP detectors. Source counts include winners on all evaluated images, including images already misclassified when clean; they are not successful-attack counts.
+
+The legacy `combined` prefix continues to mean **AA + CW-EOT**. Use `all_three` or `aa_cw_eot_cw_no_eot` for a three-attack oracle, `aa_cw_no_eot` for AA + CW without EOT, and `cw_eot_cw_no_eot` for the two CW configurations. Missing portfolios are explicitly shown as not supplied.
+
+Per-image `*_oracle_selection.csv` files are optional and are not committed here. Place them in `analysis/data/` to enable detailed winner/rule/count audits. Selected winners alone do not contain the clean-correct mask and cannot reconstruct every portfolio ASR. Aggregate oracle ASRs are checked against their success and clean-correct counts.
+
+The original two-attack summaries may have different clean-correct counts from the new evaluation. The notebook reports these discrepancies; aggregate CSVs cannot establish identical eligible image IDs.
 
 
 ## License

@@ -28,7 +28,8 @@ jobs:
             pretraining \
             training \
             analysis/tools \
-            analysis/transfer_analysis_node_jackknife.py
+            analysis/transfer_analysis_node_jackknife.py \
+            analysis/transfer_analysis_three_attacks.py
 
       - name: Validate shell entry points
         run: bash -n attacks/run_aa.sh attacks/run_cw_eot.sh
@@ -103,6 +104,7 @@ jobs:
           for transfer_path in (
               pathlib.Path("analysis/data/transfer_results_aa_th_aware.csv"),
               pathlib.Path("analysis/data/transfer_results_cw_eot_th_aware.csv"),
+              pathlib.Path("analysis/data/transfer_results_cw_no_eot_th_aware.csv"),
           ):
               with transfer_path.open(newline="", encoding="utf-8") as f:
                   transfer_rows = list(csv.DictReader(f))
@@ -221,6 +223,8 @@ jobs:
         run: python -m pip install --disable-pip-version-check -r requirements-analysis.txt
 
       - name: Execute analysis notebook
+        env:
+          TRANSFER_SENSITIVITY_CIS: "0"
         run: |
           jupyter nbconvert \
             --to notebook \
@@ -238,6 +242,32 @@ jobs:
 
           import numpy as np
           import pandas as pd
+
+          # The expanded notebook writes to a separate output tree.
+          output = pathlib.Path("analysis/output/three_attacks")
+          tests = pd.read_csv(output / "statistics/matched_statistics_all_rows.csv")
+          assert tests["primary_holm_family"].sum() == 36
+          assert tests["legacy_holm_family"].sum() == 19
+          coverage = pd.read_csv(output / "tables/input_coverage.csv")
+          assert len(coverage) == 3
+          assert coverage["targets"].eq(60).all()
+          oracles = pd.read_csv(output / "tables/oracle_summaries.csv")
+          cw = oracles[oracles["attack"].eq("cw_no_eot")]
+          assert len(cw) == 120
+          assert set(cw["scope"]) == {"strict", "self_excluded"}
+          assert not oracles["target_model"].str.contains("clip", case=False).any()
+
+          # Keep the original 19-test reproduction numerically aligned.
+          baseline = pd.read_csv("analysis/output/statistic/matched_statistical_tests.csv")
+          baseline = baseline[baseline["primary_holm_family"]].copy()
+          current = tests[tests["legacy_holm_family"]].copy()
+          current.loc[current["scope"].eq("cross_attack"), "attack_type"] = "all"
+          keys = ["scope", "attack_type", "test_name"]
+          paired = baseline.merge(current, on=keys, suffixes=("_old", "_new"), validate="one_to_one")
+          assert len(paired) == 19
+          for col in ["mean_diff", "p_node_jackknife", "ci_low", "ci_high"]:
+              assert np.allclose(paired[col+"_old"], paired[col+"_new"], rtol=1e-10, atol=1e-12)
+          assert np.allclose(paired["p_holm_old"], paired["p_holm_legacy"], rtol=1e-10, atol=1e-12)
 
           roots = [
               pathlib.Path("analysis/output/statistic"),
