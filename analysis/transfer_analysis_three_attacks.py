@@ -1758,7 +1758,7 @@ ORACLE_PORTFOLIOS = {
     "combined": ("AA + CW-EOT", ["combined", "aa_cw_eot"]),
     "aa_cw_no_eot": ("AA + CW without EOT", ["aa_cw_no_eot"]),
     "cw_eot_cw_no_eot": ("CW-EOT + CW without EOT", ["cw_eot_cw_no_eot"]),
-    "all_three": ("All three attacks", ["aa_cw_eot_cw_no_eot", "all_three"]),
+    "all_three": ("All three attacks", ["aa_cw_eot_cw_no_eot", "all_three", "combined_2"]),
 }
 
 
@@ -1808,6 +1808,36 @@ def load_oracle_summaries(data_dir, model_ids):
                 status="complete" if len(d)==len(model_ids) else "partial", targets=len(d)))
     return (pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(),
             pd.DataFrame(coverage))
+
+
+def compare_oracle_portfolios(oracle_df, baseline="combined", expanded="all_three"):
+    """Compare target-level ASRs; equal counts cannot verify clean-image identities."""
+    rows=[]
+    keys=["target_model", "scope"]
+    old=oracle_df[oracle_df.attack.eq(baseline)].copy()
+    new=oracle_df[oracle_df.attack.eq(expanded)].copy()
+    if old.empty or new.empty:
+        return pd.DataFrame(), pd.DataFrame()
+    merged=old.merge(new,on=keys,suffixes=("_baseline","_expanded"),validate="one_to_one")
+    for scope, g in merged.groupby("scope"):
+        gain=g.asr_expanded-g.asr_baseline
+        checks={}
+        for col in ["num_clean_correct", "num_samples", "target_threshold"]:
+            if col+"_baseline" in g and col+"_expanded" in g:
+                checks[col+"_matches"]=bool(g[col+"_baseline"].eq(g[col+"_expanded"]).all())
+            else:
+                checks[col+"_matches"]=None
+        if checks.get("num_clean_correct_matches") is False:
+            warnings.warn(f"{scope}: oracle portfolios have different clean-correct counts; interpret ASR differences cautiously.")
+        rows.append(dict(scope=scope,baseline=baseline,expanded=expanded,targets=len(g),
+            mean_baseline_asr_pct=100*g.asr_baseline.mean(),
+            mean_expanded_asr_pct=100*g.asr_expanded.mean(),
+            mean_gain_pp=100*gain.mean(),
+            improved_targets=int((gain>1e-12).sum()),
+            unchanged_targets=int((gain.abs()<=1e-12).sum()),
+            decreased_targets=int((gain < -1e-12).sum()),**checks))
+    merged["gain_pp"]=100*(merged.asr_expanded-merged.asr_baseline)
+    return pd.DataFrame(rows), merged
 
 
 def plot_vulnerability_summary(target_summary,oracle_df,out_dir=None):

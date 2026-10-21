@@ -147,7 +147,11 @@ The `cw` prefix in the new oracle filenames means CW **without** EOT. The helper
 
 The CW oracle summaries and selected-source counts are similarly restricted to non-CLIP detectors. Source counts include winners on all evaluated images, including images already misclassified when clean; they are not successful-attack counts.
 
+The new three-attack run is included as `transfer_results_all_three_{scope}_oracle.csv`, with both scopes and non-CLIP source counts. Its original upload prefix `combined_2` is also accepted by the loader.
+
 The legacy `combined` prefix continues to mean **AA + CW-EOT**. Use `all_three` or `aa_cw_eot_cw_no_eot` for a three-attack oracle, `aa_cw_no_eot` for AA + CW without EOT, and `cw_eot_cw_no_eot` for the two CW configurations. Missing portfolios are explicitly shown as not supplied.
+
+The notebook writes a portfolio-comparison table and per-target differences for all three attacks versus AA + CW-EOT. These compare target-level ASRs and check counts and thresholds. Matching aggregate counts does not prove that eligible image IDs match across separate runs. The supplied combined run uses one clean prediction pass per target for all three attacks; existing pairwise summaries remain unchanged for reproduction.
 
 Per-image `*_oracle_selection.csv` files are optional and are not committed here. Place them in `analysis/data/` to enable detailed winner/rule/count audits. Selected winners alone do not contain the clean-correct mask and cannot reconstruct every portfolio ASR. Aggregate oracle ASRs are checked against their success and clean-correct counts.
 

@@ -255,6 +255,14 @@ jobs:
           cw = oracles[oracles["attack"].eq("cw_no_eot")]
           assert len(cw) == 120
           assert set(cw["scope"]) == {"strict", "self_excluded"}
+          all_three = oracles[oracles["attack"].eq("all_three")]
+          assert len(all_three) == 120
+          assert set(all_three["scope"]) == {"strict", "self_excluded"}
+          comparison = pd.read_csv(output / "tables/oracle_portfolio_comparison.csv")
+          assert len(comparison) == 2
+          assert comparison["targets"].eq(60).all()
+          assert comparison["num_clean_correct_matches"].all()
+          assert comparison["decreased_targets"].eq(0).all()
           assert not oracles["target_model"].str.contains("clip", case=False).any()
 
           # Keep the original 19-test reproduction numerically aligned.
