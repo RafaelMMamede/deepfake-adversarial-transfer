@@ -1840,44 +1840,102 @@ def compare_oracle_portfolios(oracle_df, baseline="combined", expanded="all_thre
     return pd.DataFrame(rows), merged
 
 
-def plot_vulnerability_summary(target_summary,oracle_df,out_dir=None):
+def plot_vulnerability_summary(target_summary, oracle_df, out_dir=None,
+                               combined_portfolio="all_three"):
+    """Paper figure: three individual attacks and an explicitly chosen oracle union.
+
+    Combined defaults to the supplied AA / CW-without-EOT / CW-EOT union.
+    The legacy ``combined`` CSV prefix still denotes AA + CW-EOT and is
+    never substituted when the three-attack results are missing. WB and
+    mean-BB values come exclusively from the verified pairwise summaries.
+    Bars show descriptive target quantiles, not confidence intervals.
+    """
     import matplotlib.pyplot as plt
-    from matplotlib.lines import Line2D
-    labels={a: spec[0] for a, spec in ORACLE_PORTFOLIOS.items()}
-    available = set(oracle_df.attack) if not oracle_df.empty else set()
-    order=[a for a in ORACLE_PORTFOLIOS if a in ATTACK_ORDER or a in available]
-    rows=[]
-    for metric in ["whitebox_asr","mean_blackbox_asr"]:
-        for _,r in target_summary.iterrows():
-            rows.append({"attack":r.attack_type,"metric":metric,"value":100*r[metric],"target_model":r.target_model})
-    if not oracle_df.empty:
-        for _,r in oracle_df.iterrows():
-            metric="strict_oracle" if r.scope=="strict" else "self_excluding_oracle"
-            rows.append({"attack":r.attack,"metric":metric,"value":100*r.asr,"target_model":r.target_model})
-    data=pd.DataFrame(rows)
-    metrics=[("whitebox_asr","White-box ASR"),("mean_blackbox_asr","Mean black-box ASR"),
-             ("strict_oracle","Strict oracle"),("self_excluding_oracle","Self-excluding oracle")]
-    fig,axes=plt.subplots(1,4,figsize=(20,max(4, .65*len(order))),sharey=True,layout="constrained")
-    rng=np.random.default_rng(42)
-    for ax,(metric,title) in zip(axes,metrics):
-        for i,a in enumerate(order):
-            vals=data.loc[data.metric.eq(metric)&data.attack.eq(a),"value"].to_numpy()
-            if vals.size:
-                ax.scatter(vals,i+rng.uniform(-.10,.10,len(vals)),s=10,alpha=.45,color="#4C78A8")
-                q=np.quantile(vals,[.1,.25,.5,.75,.9])
-                ax.plot([q[0],q[4]],[i,i],color="black",lw=1)
-                ax.plot([q[1],q[3]],[i,i],color="black",lw=4)
-                ax.scatter([q[2]],[i],color="black",s=24,marker="D",zorder=4)
-            else:
-                msg="not applicable" if a not in ATTACK_ORDER and "oracle" not in metric else "not supplied"
-                ax.text(50,i,msg,ha="center",va="center",fontsize=8,color=".5")
-        ax.set(xlim=(-3,103),xticks=[0,25,50,75,100],title=title,xlabel="ASR (%)")
-        ax.set_yticks(range(len(order)),[labels[a] for a in order])
-        ax.grid(axis="x",alpha=.2)
-    axes[0].set_ylim(len(order)-.5,-.5)
-    fig.suptitle("Detector vulnerability and supplied attack-portfolio oracles",fontsize=16)
-    _save_figure(fig,out_dir,"model_vulnerability_summary_three_attacks")
-    return fig,data
+
+    if combined_portfolio not in ORACLE_PORTFOLIOS or combined_portfolio in ATTACK_ORDER:
+        raise ValueError("combined_portfolio must name an explicit multi-attack oracle")
+    order = list(ATTACK_ORDER) + [combined_portfolio]
+    labels = {"aa": "AA", "cw_no_eot": "CW", "cw_eot": "CW-EOT"}
+    labels[combined_portfolio] = (
+        "AA $\\cup$ CW\n$\\cup$ CW-EOT" if combined_portfolio == "all_three"
+        else ORACLE_PORTFOLIOS[combined_portfolio][0]
+    )
+    targets = set(target_summary.target_model)
+    if oracle_df.empty:
+        raise ValueError("Oracle summaries, including the three-attack union, are required")
+    rows = []
+    metrics = [("whitebox_asr", "White-box ASR"),
+               ("mean_blackbox_asr", "Mean black-box ASR"),
+               ("strict_oracle", "Strict oracle ASR"),
+               ("self_excluding_oracle", "Self-excluding oracle ASR")]
+    for metric, _ in metrics[:2]:
+        for attack in ATTACK_ORDER:
+            d = target_summary[target_summary.attack_type.eq(attack)]
+            if set(d.target_model) != targets or d.target_model.duplicated().any():
+                raise ValueError(f"Incomplete or duplicate pairwise targets for {attack}")
+            rows.extend(dict(attack=attack, metric=metric, value=100*r[metric],
+                             target_model=r.target_model) for _, r in d.iterrows())
+    for scope, (metric, _) in zip(["strict", "self_excluded"], metrics[2:]):
+        for attack in order:
+            d = oracle_df[oracle_df.attack.eq(attack) & oracle_df.scope.eq(scope)]
+            if set(d.target_model) != targets or d.target_model.duplicated().any():
+                raise ValueError(f"Complete {attack} / {scope} oracle summaries are required; "
+                                 "legacy two-attack results cannot replace the all-three union")
+            rows.extend(dict(attack=attack, metric=metric, value=100*r.asr,
+                             target_model=r.target_model) for _, r in d.iterrows())
+    data = pd.DataFrame(rows)
+    if not np.isfinite(data.value).all() or not data.value.between(0, 100).all():
+        raise ValueError("Vulnerability figure requires finite ASRs between 0 and 100 percent")
+
+    point_color, tail_color = "#6F9DBB", "#566573"
+    iqr_color, median_color = "#263746", "#D55E00"
+    grid_color, text_color, spine_color = "#E1E6E9", "#2B2B2B", "#AAB4BA"
+    # Keep the paper styling local to this figure, including in an interactive notebook.
+    with plt.rc_context({"font.size": 8.2, "text.color": text_color,
+                         "axes.labelcolor": text_color, "axes.titlecolor": text_color,
+                         "xtick.color": text_color, "ytick.color": text_color,
+                         "axes.facecolor": "white", "figure.facecolor": "white"}):
+        fig, axes = plt.subplots(4, 1, figsize=(3.45, 7.6), sharex=True,
+                                 gridspec_kw={"height_ratios": [3, 3, 4, 4], "hspace": .50})
+        for panel_index, (ax, (metric, title)) in enumerate(zip(axes, metrics)):
+            attacks = order[:3] if panel_index < 2 else order
+            rng = np.random.default_rng(1800 + panel_index)
+            for y, attack in enumerate(attacks):
+                vals = data.loc[data.metric.eq(metric) & data.attack.eq(attack)].sort_values(
+                    "target_model").value.to_numpy()
+                ax.scatter(vals, y+rng.uniform(-.13, .13, len(vals)), s=9,
+                           color=point_color, alpha=.32, edgecolors="none",
+                           clip_on=False, zorder=2)
+                q10, q25, median, q75, q90 = np.percentile(vals, [10, 25, 50, 75, 90])
+                ax.hlines(y, q10, q90, color=tail_color, linewidth=1.15, zorder=3)
+                ax.vlines([q10, q90], y-.055, y+.055, color=tail_color,
+                          linewidth=1.0, zorder=3)
+                ax.hlines(y, q25, q75, color=iqr_color, linewidth=3.4, zorder=4)
+                ax.scatter(median, y, marker="D", s=25, facecolor=median_color,
+                           edgecolor="white", linewidth=.8, clip_on=False, zorder=5)
+            ax.set_title(f"({chr(ord('a')+panel_index)}) {title}", loc="left",
+                         fontsize=9.0, fontweight="semibold", color=text_color, pad=6)
+            ax.set(xlabel="", ylabel="", xlim=(-3, 103), xticks=[0, 25, 50, 75, 100],
+                   ylim=(len(attacks)-.5, -.5))
+            ax.set_yticks(range(len(attacks)), [labels[a] for a in attacks], fontsize=8.2)
+            ax.tick_params(axis="x", labelsize=7.8, length=2.5, pad=2, labelbottom=True)
+            ax.tick_params(axis="y", length=0, pad=6)
+            ax.set_axisbelow(True)
+            ax.grid(axis="x", color=grid_color, alpha=.85, linewidth=.55)
+            ax.grid(axis="y", visible=False)
+            for side in ["top", "right", "left"]:
+                ax.spines[side].set_visible(False)
+            ax.spines["bottom"].set_color(spine_color)
+            ax.spines["bottom"].set_linewidth(.7)
+        axes[-1].set_xlabel("Attack success rate (%)", fontsize=8.5, labelpad=5)
+        fig.subplots_adjust(top=.985, bottom=.065, left=.25, right=.97, hspace=.50)
+        if out_dir is not None:
+            out_dir = Path(out_dir)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            stem = out_dir / "model_vulnerability_summary_three_attacks"
+            fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
+            fig.savefig(stem.with_suffix(".png"), dpi=600, bbox_inches="tight")
+    return fig, data
 
 
 def plot_oracle_source_counts(data_dir,model_ids,out_dir=None):

@@ -258,6 +258,18 @@ jobs:
           all_three = oracles[oracles["attack"].eq("all_three")]
           assert len(all_three) == 120
           assert set(all_three["scope"]) == {"strict", "self_excluded"}
+          figure_data = pd.read_csv(output / "tables/model_vulnerability_summary.csv")
+          assert len(figure_data) == 14 * 60
+          assert set(figure_data["attack"]) == {"aa", "cw_no_eot", "cw_eot", "all_three"}
+          assert not figure_data.duplicated(["metric", "attack", "target_model"]).any()
+          for scope, metric in [("strict", "strict_oracle"),
+                                ("self_excluded", "self_excluding_oracle")]:
+              plotted = figure_data[figure_data["attack"].eq("all_three")
+                                    & figure_data["metric"].eq(metric)]
+              expected = all_three[all_three["scope"].eq(scope)]
+              matched = plotted.merge(expected, on="target_model", validate="one_to_one")
+              assert len(matched) == 60
+              assert np.allclose(matched["value"], 100 * matched["asr"], atol=1e-10, rtol=0)
           comparison = pd.read_csv(output / "tables/oracle_portfolio_comparison.csv")
           assert len(comparison) == 2
           assert comparison["targets"].eq(60).all()
