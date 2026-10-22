@@ -186,3 +186,16 @@ The original two-attack summaries may have different clean-correct counts from t
 ## License
 
 See the repository-level `LICENSE` and main `README.md` for licensing, attribution, and citation information applying to this analysis package.
+
+## Paper oracle figure export
+
+The oracle plotting cell in `analysis_fr_and_base.ipynb` explicitly saves
+`output/three_attacks/figures/model_vulnerability_summary_three_attacks.pdf`
+with embedded TrueType fonts, plus a 600-DPI PNG, before displaying and closing
+the figure. It prints the absolute paths to both files. Include the PDF directly
+in the LaTeX paper to retain vector text, lines and markers; copying the inline
+notebook preview can produce a low-resolution raster image.
+
+The notebook omits the plotting helper's optional `out_dir` argument to avoid
+exporting the figure twice. Other callers can still pass `out_dir` to
+`plot_vulnerability_summary` for the same PDF/PNG exports.

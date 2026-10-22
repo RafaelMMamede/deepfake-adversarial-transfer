@@ -1983,7 +1983,8 @@ def plot_vulnerability_summary(target_summary, oracle_df, out_dir=None,
     iqr_color, median_color = "#263746", "#D55E00"
     grid_color, text_color, spine_color = "#E1E6E9", "#2B2B2B", "#AAB4BA"
     # Keep the paper styling local to this figure, including in an interactive notebook.
-    with plt.rc_context({"font.size": 8.2, "text.color": text_color,
+    with plt.rc_context({"pdf.fonttype": 42, "ps.fonttype": 42,
+                         "font.size": 8.2, "text.color": text_color,
                          "axes.labelcolor": text_color, "axes.titlecolor": text_color,
                          "xtick.color": text_color, "ytick.color": text_color,
                          "axes.facecolor": "white", "figure.facecolor": "white"}):
