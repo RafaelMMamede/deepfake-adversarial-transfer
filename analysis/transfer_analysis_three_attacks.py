@@ -1622,43 +1622,135 @@ def plot_transfer_heatmap(df,title,out_dir=None,stem="transfer_matrix",model_ord
     return fig,matrix
 
 
-def plot_group_heatmaps(df,out_dir=None):
+def plot_group_heatmaps(df, out_dir=None, *, value_vmin=0, value_vmax=40,
+                        export_attack_rows=True):
+    """Three-attack paper heatmaps in the supplied Canva YlOrRd style.
+
+    Group orders and the shared 0--40 percent scale match the two-attack
+    reference. Separate attack-row exports omit headings, attack labels and
+    the colorbar so they can be placed directly into the Canva composition.
+    Only the final row includes source tick labels, as in the combined figure.
+    """
     import matplotlib.pyplot as plt
     import seaborn as sns
+    from matplotlib.colors import Normalize
+    from matplotlib.cm import ScalarMappable
     from matplotlib.patches import Rectangle
-    specs=[
-        ("Architecture family","arch_family",ARCH_ORDER,{"cnn":"CNN","transformer":"Transformer"},True),
-        ("Backbone","backbone",BACKBONE_ORDER,BACKBONE_LABELS,False),
-        ("Pretraining","pretrain",PRETRAIN_ORDER,{"imgnet":"ImageNet","fr":"FaceRec."},False),
-        ("Training data","train_family",TRAIN_FAMILY_ORDER,{},False),
+    from matplotlib.transforms import Bbox
+
+    # These are display orders only; statistical estimators retain their orders.
+    specs = [
+        ("Architecture family", "arch_family", ARCH_ORDER,
+         {"cnn": "CNN", "transformer": "Transformer"}, True, 1.00, 6.8, 35),
+        ("Backbone", "backbone",
+         ["resnet34", "xception", "efficientnetb4", "deit", "vit", "swin"],
+         BACKBONE_LABELS, False, .80, 6.2, 38),
+        ("Pretraining", "pretrain", ["fr", "imgnet"],
+         {"imgnet": "ImageNet", "fr": "FaceRec."}, False, 1.00, 6.8, 38),
+        ("Training data", "train_family", TRAIN_FAMILY_ORDER,
+         {}, False, .87, 6.3, 35),
     ]
-    attacks=[a for a in ATTACK_ORDER if a in set(df.attack_type)]
-    matrices={}
-    for a in attacks:
-        for title,factor,order,labels,exclude in specs:
-            d=df[df.attack_type.eq(a)&df.is_blackbox]
-            if exclude:d=d[~d.same_backbone]
-            m=100*d.pivot_table(index="target_"+factor,columns="origin_"+factor,values="asr",aggfunc="mean")
-            matrices[(a,factor)]=m.reindex(index=order,columns=order)
-    vmax=max(40,10*np.ceil(max(np.nanmax(m.to_numpy()) for m in matrices.values())/10))
-    fig,axes=plt.subplots(len(attacks),4,figsize=(15,3.6*len(attacks)),squeeze=False,
-                          gridspec_kw={"width_ratios":[1.1,2.2,1.1,1.9]},layout="constrained")
-    for i,a in enumerate(attacks):
-        for j,(title,factor,order,labels,exclude) in enumerate(specs):
-            m=matrices[(a,factor)].rename(index=labels,columns=labels)
-            sns.heatmap(m,ax=axes[i,j],cmap=make_asr_cmap(),vmin=0,vmax=vmax,
-                        annot=True,fmt=".0f",cbar=False,annot_kws={"fontsize":8})
-            axes[i,j].set_title(title if i==0 else "")
-            axes[i,j].set_xlabel("Source")
-            axes[i,j].set_ylabel(ATTACK_LABELS[a]+"\nTarget" if j==0 else "Target")
-            axes[i,j].tick_params(axis="x",labelrotation=35,labelsize=8)
-            axes[i,j].tick_params(axis="y",labelsize=8)
-            for k in range(len(m)):
-                axes[i,j].add_patch(Rectangle((k,k),1,1,fill=False,edgecolor="black",lw=1.4))
-    fig.colorbar(axes[0,0].collections[0],ax=axes.ravel().tolist(),label="Mean black-box ASR (%)",shrink=.75)
-    fig.suptitle("White-box pairs excluded; architecture-family panels also exclude exact backbone matches",fontsize=11)
-    _save_figure(fig,out_dir,"group_transfer_factors_three_attacks")
-    return fig,matrices
+    df = remove_clip_rows(df)
+    attacks = [a for a in ATTACK_ORDER if a in set(df.attack_type)]
+    if not attacks:
+        raise ValueError("No recognized attacks available for group heatmaps")
+    matrices = {}
+    for attack in attacks:
+        for _, factor, order, _, exclude, _, _, _ in specs:
+            d = df[df.attack_type.eq(attack) & df.is_blackbox]
+            if exclude:
+                d = d[~d.same_backbone]
+            m = 100*d.pivot_table(index="target_"+factor, columns="origin_"+factor,
+                                 values="asr", aggfunc="mean")
+            matrices[(attack, factor)] = m.reindex(index=order, columns=order)
+
+    paper_rc = {"font.family": "sans-serif",
+                "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+                "pdf.fonttype": 42, "ps.fonttype": 42, "axes.linewidth": .6,
+                "font.size": 7.2, "xtick.labelsize": 6.6, "ytick.labelsize": 6.6,
+                "axes.facecolor": "white", "figure.facecolor": "white"}
+    with plt.rc_context(paper_rc):
+        cmap = sns.color_palette("YlOrRd", as_cmap=True)
+        norm = Normalize(vmin=value_vmin, vmax=value_vmax)
+        fig, axes = plt.subplots(len(attacks), 4, figsize=(7.15, 1.3*len(attacks)+1.25),
+                                 squeeze=False,
+                                 gridspec_kw={"width_ratios": [1.00, 1.25, 1.00, 1.15]})
+        for i, attack in enumerate(attacks):
+            for j, (_, factor, _, labels, _, aspect, fontsize, rotation) in enumerate(specs):
+                ax = axes[i, j]
+                m = matrices[(attack, factor)].rename(index=labels, columns=labels)
+                sns.heatmap(m, ax=ax, cmap=cmap, vmin=value_vmin, vmax=value_vmax,
+                            mask=m.isna(), annot=False, cbar=False, square=False,
+                            linewidths=.55, linecolor="white",
+                            xticklabels=list(m.columns), yticklabels=list(m.index))
+                ax.set_box_aspect(aspect)
+                for y in range(len(m)):
+                    for x in range(len(m.columns)):
+                        value = m.iloc[y, x]
+                        if pd.isna(value):
+                            continue
+                        red, green, blue, _ = cmap(norm(value))
+                        luminance = .2126*red + .7152*green + .0722*blue
+                        ax.text(x+.5, y+.5, f"{value:.0f}", ha="center", va="center",
+                                color="black" if luminance >= .52 else "white",
+                                fontsize=fontsize)
+                for k in range(len(m)):
+                    ax.add_patch(Rectangle((k, k), 1, 1, fill=False,
+                                           edgecolor="0.15", linewidth=.9))
+                ax.set(xlabel="", ylabel="", title="")
+                if i == len(attacks)-1:
+                    ax.set_xticklabels(list(m.columns), rotation=rotation, ha="right",
+                                       rotation_mode="anchor", fontsize=6.6)
+                else:
+                    ax.tick_params(axis="x", labelbottom=False)
+                ax.set_yticklabels(list(m.index), rotation=0, fontsize=6.6)
+                ax.tick_params(axis="both", length=0, pad=1.5)
+        fig.subplots_adjust(left=.095, right=.915, top=.90, bottom=.15,
+                            wspace=.48, hspace=.26)
+        fig.canvas.draw()
+        for j, (title, _, _, _, _, _, _, _) in enumerate(specs):
+            box = axes[0, j].get_position()
+            fig.text((box.x0+box.x1)/2, .965, f"({chr(97+j)}) {title}",
+                     ha="center", va="center", fontsize=8.2)
+        attack_labels = {"aa": "AA", "cw_no_eot": "CW", "cw_eot": "CW-EOT"}
+        for i, attack in enumerate(attacks):
+            box = axes[i, 0].get_position()
+            fig.text(box.x0, box.y1+.018, attack_labels[attack],
+                     ha="left", va="bottom", fontsize=7.2)
+        renderer = fig.canvas.get_renderer()
+        tick_left = min(ax.get_tightbbox(renderer).x0 for ax in axes[:, 0]) / fig.bbox.width
+        fig.text(tick_left-.025, .50, "Target group", rotation=90,
+                 va="center", ha="center", fontsize=7.2)
+        fig.text(.51, .025, "Source group", va="center", ha="center", fontsize=7.2)
+        cbar_ax = fig.add_axes([.94, .20, .014, .64])
+        colorbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), cax=cbar_ax,
+                               ticks=np.arange(value_vmin, value_vmax+1, 10))
+        colorbar.set_label("Mean black-box ASR (%)", fontsize=7.2, labelpad=4)
+        colorbar.ax.tick_params(labelsize=6.5, length=2, width=.5)
+        colorbar.outline.set_linewidth(.5)
+        if out_dir is not None:
+            out_dir = Path(out_dir)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            stem = out_dir / "group_transfer_factors_three_attacks"
+            fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
+            fig.savefig(stem.with_suffix(".png"), dpi=600, bbox_inches="tight")
+            if export_attack_rows:
+                fig.canvas.draw()
+                renderer = fig.canvas.get_renderer()
+                text_visibility = [(text, text.get_visible()) for text in fig.texts]
+                for text, _ in text_visibility:
+                    text.set_visible(False)
+                try:
+                    for i, attack in enumerate(attacks):
+                        row_box = Bbox.union([ax.get_tightbbox(renderer) for ax in axes[i]])
+                        row_box = row_box.transformed(fig.dpi_scale_trans.inverted()).padded(.02)
+                        stem = out_dir / f"group_transfer_factors_{attack}"
+                        fig.savefig(stem.with_suffix(".pdf"), bbox_inches=row_box)
+                        fig.savefig(stem.with_suffix(".png"), dpi=600, bbox_inches=row_box)
+                finally:
+                    for text, visible in text_visibility:
+                        text.set_visible(visible)
+    return fig, matrices
 
 
 def plot_compatibility_effects(stats_df,out_dir=None):

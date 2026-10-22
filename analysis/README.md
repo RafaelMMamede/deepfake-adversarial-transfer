@@ -99,6 +99,22 @@ The notebook imports `transfer_analysis_three_attacks.py` and writes regenerated
 
 `SENSITIVITY_WITH_CIS=False` skips nested jackknife intervals for group-omission diagnostics while retaining their point estimates. The primary full-bank statistical tests still include node-jackknife intervals.
 
+## Group heatmap exports for Canva
+
+The group-level transfer figure matches the paper/Canva reference: `YlOrRd`,
+a shared 0–40% scale, outlined same-group cells, and contrast-aware annotations.
+Rows are AA, CW without EOT, and CW-EOT. Display order puts ResNet34 before
+Xception and FaceRec. before ImageNet; the analysis values are unchanged.
+
+Under `output/three_attacks/figures/`, the notebook writes vector PDFs and
+600-dpi PNGs for the full `group_transfer_factors_three_attacks` figure and
+three row assets: `group_transfer_factors_aa`,
+`group_transfer_factors_cw_no_eot`, and `group_transfer_factors_cw_eot`.
+The row assets omit headings, attack labels, and the shared colour bar so they
+can be inserted into the existing Canva composition. Only the bottom CW-EOT
+row includes source tick labels. The full detector-level heatmaps retain their
+existing colour map and 0–100% scale.
+
 ## Portable path fields
 
 Some transfer CSVs contain an `attack_path` column with paths beginning with the literal placeholder `${DATA_ROOT}`. These strings preserve attack and source-model provenance. The loader uses components in the path suffix, such as the pretraining regime and source-model name, to reconstruct the source identifier.
